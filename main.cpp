@@ -1,8 +1,12 @@
 #include <iostream>
 #include <string.h>
 #include <vector>
+#include "robot.cpp"
 using namespace std;
 
+///////////////////////////////
+//			System		     //
+///////////////////////////////
 class System
 {
 	private:
@@ -235,10 +239,14 @@ void System::signup()
 
 void System::login()
 {
-	string user;
+	int user;
 	string name;
 	string password;
-	cout << "[ Customer, Project Manager, Boss, Sales Associate ]\nChoose User: ";
+	cout << R"(
+    #1             #2         #3          #4 
+[ Customer, Project Manager, Boss, Sales Associate ]
+
+Choose the user # that you wish to login as: )";
 	cin >> user;
 	cout << "Username: ";
 	cin >> name;
@@ -280,6 +288,10 @@ void System::startup()
 		cout << "Error: Command Not Found!";
 	}
 }
+
+////////////////////
+//		Main      //
+////////////////////
 
 int main()
 {
