@@ -99,7 +99,20 @@ class Robot: public Head, public Arm, public Torso, public Locomotor
 		string model_name;
 		double model_price;
 	public:
+		Robot();
 		Robot(Head head, Torso torso, Arm left, Arm Right,Locomotor locomotor,string model_name);
-		double get_model_price();
 		void define_parts();
+		double get_model_price();
 };
+
+void Robot::define_parts()
+{
+
+}
+
+int main()
+{
+	Robot test;
+	test.define_parts();
+	return 0;
+}
