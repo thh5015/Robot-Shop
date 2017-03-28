@@ -18,6 +18,7 @@ class Head
 		string description;
 	public:
 		Head(string part_name, int part_num, int weight, double cost, string description);
+		double get_price();
 		string to_string();
 };
 
@@ -28,6 +29,11 @@ Head::Head(string part_name, int part_num, int weight, double cost, string descr
 	this->weight = weight;
 	this->cost = cost;
 	this->description = description;
+}
+
+double Head::get_price()
+{
+	return cost;
 }
 
 string Head::to_string()
@@ -48,6 +54,7 @@ class Arm
 		string description;
 	public:
 		Arm(string part_name, int part_num, int weight, double cost, int power_usage, string description);
+		double get_price();
 		string to_string();
 };
 
@@ -59,6 +66,11 @@ Arm::Arm(string part_name, int part_num, int weight, double cost, int power_usag
 	this->cost = cost;
 	this->power_usage = power_usage;
 	this->description = description;
+}
+
+double Arm::get_price()
+{
+	return cost;
 }
 
 string Arm::to_string()
@@ -81,6 +93,7 @@ class Battery
 		Battery(string part_name, int part_num, int power_stored, int weight, double cost, string description);
 		int get_power_stored();
 		int get_weight();
+		double get_price();
 		string to_string();
 };
 
@@ -92,6 +105,11 @@ Battery::Battery(string part_name, int part_num, int power_stored, int weight, d
 	this->weight = weight;
 	this->cost = cost;
 	this->description = description;
+}
+
+double Battery::get_price()
+{
+	return cost;
 }
 
 int Battery::get_power_stored()
@@ -128,6 +146,8 @@ class Torso
 		int get_total_power();
 		double get_total_cost();
 		int get_total_weight();	
+		int get_battery_count();
+		double get_price();
 		string to_string();
 };
 
@@ -140,6 +160,17 @@ Torso::Torso(string part_name, int part_num, int weight, int battery_num, double
 	this->cost = cost;
 	this->description = description;
 	count = 0;
+}
+
+double Torso::get_price()
+{
+	double total_price = 0;
+	for(int i = 0; i < batteries.size(); i++)
+	{
+		total_price = total_price + batteries[i].get_price();
+	}
+	total_price = total_price + cost;
+	return total_price;
 }
 
 void Torso::add_battery(Battery battery)
@@ -177,6 +208,11 @@ int Torso::get_total_weight()
 	return total_weight;
 }
 
+int Torso::get_battery_count()
+{
+	return battery_num;
+}
+
 string Torso::to_string()
 {
 	stringstream to_string;
@@ -196,6 +232,7 @@ class Locomotor
 		string description;
 	public:
 		Locomotor(string part_name, int part_num, int weight, double cost, int power_consumed, int max_speed, string description);
+		double get_price();
 		string to_string();
 };
 
@@ -210,6 +247,11 @@ Locomotor::Locomotor(string part_name, int part_num, int weight, double cost, in
 	this->description = description;
 }
 
+double Locomotor::get_price()
+{
+	return cost;
+}
+
 string Locomotor::to_string()
 {
 	stringstream to_string;
@@ -221,32 +263,50 @@ string Locomotor::to_string()
 //		Robot	   //
 /////////////////////
 
-class Robot: public Head, public Arm, public Torso, public Locomotor
+class Robot
 {
 	protected:
 		int model_number;
 		string model_name;
 		double model_price;
-		Head head;
-		Torso torso;
-		Arm arm_left;
-		Arm arm_right;
-		Locomotor locomotor;
+		Head* head;
+		Torso* torso;
+		Arm* arm_left;
+		Arm* arm_right;
+	    Locomotor* locomotor;
 	public:
-		Robot(Head head, Torso torso, Arm left, Arm Right,Locomotor locomotor,string model_name);
+		Robot(Head head, Torso torso, Arm left, Arm right,Locomotor locomotor,string model_name);
 		double get_model_price();
+		string to_string();
 		void test_interface();
 		void clean();
 };
 
-Robot::Robot(Head head, Torso torso, Arm left, Arm Right,Locomotor locomotor,string model_name)
+Robot::Robot(Head head, Torso torso, Arm left, Arm right,Locomotor locomotor,string model_name)
 {
-	this->head = head;
-	this->torso = torso;
-	this->arm_left = left;
-	this->arm_right = right;
-	this->locomotor = locomotor;
+	this->head = &head;
+	this->torso = &torso;
+	this->arm_left = &left;
+	this->arm_right = &right;
+	this->locomotor = &locomotor;
 	this->model_name = model_name;
+}
+
+double Robot::get_model_price()
+{
+	double model_price = 0;
+	double profit_margin = 0;
+	model_price = head->get_price() + torso->get_price() + arm_left->get_price() + arm_right->get_price() + locomotor->get_price();
+	profit_margin = (model_price * .20);
+	model_price = model_price + profit_margin;
+	return model_price;
+}
+
+string Robot::to_string()
+{
+	stringstream to_string;
+	to_string << model_name << "\nPrice: " << get_model_price();
+	return to_string.str();
 }
 
 /////////////////////
@@ -269,6 +329,7 @@ class System
 		void add_locomotor();
 		void add_battery();
 		void create_robot();
+		void view_robots();
 		void test_interface();
 		void clean();
 };
@@ -284,6 +345,7 @@ void System::test_interface()
     *    4) Add Locomotor  *
     *    5) Add Battery    *
     *    6) Create Robot   *
+    *    7) View Robot     *
     ************************
     Command: )";
 	cout << interface;
@@ -317,6 +379,11 @@ void System::test_interface()
 	{
 		clean();
 		create_robot();
+	}
+	else if(input == 7)
+	{
+		clean();
+		view_robots();
 	}
 	else
 	{
@@ -363,7 +430,6 @@ void System::create_robot()
 	clean();
 
 	int input_batteries[3];
-	int size = sizeof(input_batteries)/4;
 	if(list_of_batteries.size() == 0)
 	{
 		clean();
@@ -372,7 +438,7 @@ void System::create_robot()
 	}
 	else
 	{
-		for(int i = 0; i < size; i++)
+		for(int i = 0; i < list_of_torsos[input_torso].get_battery_count(); i++)
 		{
 			for(int x = 0; x < list_of_batteries.size(); x++)
 			{
@@ -380,7 +446,12 @@ void System::create_robot()
 			}
 			cout << "\nSelect Battery [#" << (i+1) << "]: ";
 			cin >> input_batteries[i];
+			clean();
 		}
+	}
+	for(int i = 0; i < list_of_torsos[input_torso].get_battery_count(); i++)
+	{
+		list_of_torsos[input_torso].add_battery(list_of_batteries[input_batteries[i]]);
 	}
 
 	int input_left_arm;
@@ -442,9 +513,20 @@ void System::create_robot()
 	getline(cin,model_name);
 	getline(cin,model_name);
 
-	//Robot(list_of_heads[input_head], list_of_torsos[input_torso], list_of_arms[input_left_arm], list_of_arms[input_right_arm], list_of_locomotors[input_locomotor],model_name)
-	
+	Robot robot(list_of_heads[input_head], list_of_torsos[input_torso], list_of_arms[input_left_arm], list_of_arms[input_right_arm], list_of_locomotors[input_locomotor],model_name);
+	list_of_robots.push_back(robot);
+	cout << "";
 	clean();
+	test_interface();
+}
+
+void System::view_robots()
+{
+	cout << "List of Robots:\n\n";
+	for(int i = 0; i < list_of_robots.size(); i++)
+	{
+		cout << list_of_robots[i].to_string() << "\n";
+	}
 	test_interface();
 }
 
@@ -502,6 +584,7 @@ void System::add_arm()
 	getline(cin,description);
 	Arm arm(part_name, part_num, weight, cost, power_usage, description);
 	list_of_arms.push_back(arm);
+	cout << "";
 	clean();
 	test_interface();
 }
@@ -528,6 +611,7 @@ void System::add_torso()
 	getline(cin,description);
 	Torso torso(part_name, part_num, weight, battery_num, cost, description);
 	list_of_torsos.push_back(torso);
+	cout << "";
 	clean();
 	test_interface();
 }
@@ -557,6 +641,7 @@ void System::add_locomotor()
 	getline(cin,description);
 	Locomotor locomotor(part_name, part_num, weight, cost, power_consumed, max_speed, description);
 	list_of_locomotors.push_back(locomotor);
+	cout << "";
 	clean();
 	test_interface();
 }
@@ -583,6 +668,7 @@ void System::add_battery()
 	getline(cin,description);
 	Battery battery(part_name, part_num, power_stored, weight, cost, description);
 	list_of_batteries.push_back(battery);
+	cout << "";
 	clean();
 	test_interface();
 }
