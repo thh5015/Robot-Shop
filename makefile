@@ -1,12 +1,12 @@
 CXXFLAGS =
 
-all: robot
+all: main
 debug: CXXFLAGS += -G
-debug: robot
+debug: main
 
-rebuild: clean robot
+rebuild: clean main
 
-robot: robot.cpp
-	${CXX} ${CXXFLAGS} -std=c++11 -o robot robot.cpp
+main: main.cpp
+	${CXX} ${CXXFLAGS} -std=c++11 -o main main.cpp
 clean:
 	rm -f *.o a.out
