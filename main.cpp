@@ -2,6 +2,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <ctime>
 using namespace std;
 
 /////////////////////
@@ -235,6 +236,7 @@ class Robot
     public:
         Robot(Head head, Torso torso, Arm left, Arm right, Locomotor locomotor, vector<Battery> &batteries);
         double get_price();
+        string get_name();
         void set_info();
         string to_string();
 };
@@ -278,6 +280,11 @@ double Robot::get_price()
     return price;
 }
 
+string Robot::get_name()
+{
+    return name;
+}
+
 string Robot::to_string()
 {
     stringstream to_string;
@@ -299,7 +306,28 @@ class User
         string name;
         string username;
         string password;
+        string phone_number;
+        string email_address;
+    public:
+        string get_username();
+        string get_password();
+        string get_name();
 };
+
+string User::get_username()
+{
+    return username;
+}
+
+string User::get_password()
+{
+    return password;
+}
+
+string User::get_name()
+{
+    return name;
+}
 
 ///////////////////////
 //  Project Manager  //
@@ -318,7 +346,15 @@ class Project_Manager: public User
         void add_part(int part_type);
         void create_robot();  
         void list_robots();     
+        Project_Manager(){}
+        Project_Manager(string username,string password);
 };
+
+Project_Manager::Project_Manager(string username,string password)
+{
+    this->username = username;
+    this->password = password;
+}
 
 void Project_Manager::add_part(int part_type)
 {
@@ -486,10 +522,48 @@ void Project_Manager::list_robots()
 class Sales_Associate: public User
 {
     private:
-
+        vector<Robot> sales;
+        vector<string> names;
+        vector<int> year;
+        vector<int> month;
+        vector<int> day;
     public:
-       // Sales_Associate(string username, string password);
+        void place_order(Robot robot, string name);
+        string bill_of_sales();
+        Sales_Associate(string name,string username, string password);
 };
+
+Sales_Associate::Sales_Associate(string name, string username, string password)
+{
+    this->name = name;
+    this->username = username;
+    this->password = password;
+}
+
+void Sales_Associate::place_order(Robot robot,string name)
+{
+    time_t t = time(0);
+    struct tm* now = localtime(&t);
+    year.push_back(now->tm_year+1900);
+    month.push_back(now->tm_mon+1);
+    day.push_back(now->tm_mday);
+    names.push_back(name);
+    sales.push_back(robot);
+}
+
+string Sales_Associate::bill_of_sales()
+{
+    stringstream bill_of_sales;
+    bill_of_sales << "Bill of Sales:\n\n";
+    for(int i = 0; i < sales.size(); i++)
+    {
+        bill_of_sales << "Order #: " << i+1
+                      << "\nDate of Sale: " << month[i] << "/" << day[i] << "/" << year[i]
+                      << "\nCustomers Name: " << names[i]
+                      << "\nRobot Ordered: " << sales[i].get_price() << "\n\n";
+    }
+    return bill_of_sales.str();
+}
 
 ///////////////////////
 //     Customers     //
@@ -500,21 +574,23 @@ class Customer: public User
     private:
         vector<Robot> orders;
         double outstanding_balance;
-        Sales_Associate current_sa;
+        int sa_index;
     public:
         void purchase_robot(Robot robot);
-        void change_sa(Sales_Associate current_sa);
+        void change_sa(int sa_index);
         void pay_amount(double amount);
-        string get_username();
-        string get_password();
-        Customer(string username,string password,Sales_Associate current_sa);
+        string view_orders();
+        int get_currentsa();
+        double get_outstanding_balance();
+        Customer(string name,string username,string password,int current_sa);
 };
 
-Customer::Customer(string username,string password, Sales_Associate current_sa)
+Customer::Customer(string name, string username,string password, int sa_index)
 {
+    this->name = name;
     this->username = username;
     this->password = password;
-    this->current_sa = current_sa;
+    this->sa_index = sa_index;
     outstanding_balance = 0;
 }
 
@@ -529,19 +605,32 @@ void Customer::pay_amount(double amount)
     outstanding_balance = outstanding_balance - amount;
 }
 
-void Customer::change_sa(Sales_Associate current_sa)
+void Customer::change_sa(int sa_index)
 {
-    this->current_sa = current_sa;
+    this->sa_index = sa_index;
 }
 
-string Customer::get_username()
+string Customer::view_orders()
 {
-    return username;
+    stringstream to_string;
+    to_string << "List of Orders:\n\n";
+    for(int i = 0; i < orders.size(); i++)
+    {
+        to_string << "Order #: " << i+1
+                  << "\nModel Name: " << orders[i].get_name()
+                  << "\nPrice of Robot: " << orders[i].get_price() << "\n\n";
+    }
+    return to_string.str();
 }
 
-string Customer::get_password()
+double Customer::get_outstanding_balance()
 {
-    return password;
+    return outstanding_balance;
+}
+
+int Customer::get_currentsa()
+{
+    return sa_index;
 }
 
 ///////////////////////
@@ -552,12 +641,17 @@ class POS_System
 {
     private:
         Project_Manager pm;
-        //Sales_Associate sms;                  
-        //Customer cms;
+        vector<Sales_Associate> sas;                  
+        vector<Customer> cms;
         //Boss boss;
     public:
         void interface_pm();
-        void interface_customer();
+        void interface_customer(int session);
+        void interface_sa(int session);
+        void startup_screen();
+        void login();
+        void save();
+        void load();
         void clean();
 };
 
@@ -580,8 +674,8 @@ void POS_System::interface_pm()
     *    4) Add Locomotor  *
     *    5) Add Battery    *
     *    6) Create Robot   *
-    *    7) View Robot     *
-    *    8) Exit           *
+    *    7) View Robots    *
+    *    8) Log off        *
     ************************
     Command: )";
 
@@ -632,7 +726,8 @@ void POS_System::interface_pm()
         }
         else if(input == 8)
         {
-            exit(0);
+            clean();
+            startup_screen();
         }
         else
         {
@@ -642,6 +737,142 @@ void POS_System::interface_pm()
     }
 }
 
+void POS_System::interface_customer(int session)
+{
+
+}
+
+void POS_System::interface_sa(int session)
+{
+
+}
+
+void POS_System::login()
+{
+
+}
+
+void POS_System::startup_screen()
+{
+    //load();
+    int input;
+    string name;
+    string username;
+    string password;
+    string interface = R"(
+    ********************************
+    *    1) Login                  *
+    *    2) Create Project Manager *
+    *    3) Create Customer        *
+    *    4) Create Sales_Associate *
+    *    5) Exit                   *
+    ********************************
+    Command: )";
+    cout << interface;
+    cin >> input;
+    while(input != 5)
+    {
+        if(input == 1)
+        {   
+            clean();
+            //login();
+        }
+        else if(input == 2)
+        {
+            if(pm.get_username() == "")
+            {
+                clean();
+                cout << "Please Enter a Username: ";
+                cin >> username;
+                cout << "Please Enter a Password: ";
+                cin >> password;
+                Project_Manager temp(username,password);
+                pm = temp;
+                clean(); 
+                interface_pm();
+            }
+            else
+            {
+                clean();
+                cout << "Can only have 1 project manager!";
+                startup_screen();
+            }
+        }
+        else if(input == 3)
+        {
+            clean();
+            int sa_index;
+            cout << "Please Enter a Username: ";
+            cin >> username;
+            cout << "Please Enter a Password: ";
+            cin >> password;
+            cout << "Please Enter your FULL name: ";
+            getline(cin,name);
+            if(sas.size() == 0)
+            {
+                clean();
+                cout << "Can't create customer until a Sales Associate is made!";
+                startup_screen(); 
+            }
+            else
+            {
+                cout << "\nList of Sales Associates:\n\n";
+                for(int i = 0; i < sas.size(); i++)
+                {
+                    cout <<"Sales Associate [#" << i << "]\nName:" << sas[i].get_name() << "\n\n";
+                }
+                cout << "Please Select the Employee # of the Sales Associate that you wish to assist you: ";
+                cin >> sa_index;
+                Customer temp(name,username,password,sa_index);
+                cms.push_back(temp);
+                interface_customer(cms.size()-1);
+            }
+        }
+        else if(input == 4)
+        {
+            clean();
+            cout << "Please Enter a Username: ";
+            cin >> username;
+            cout << "Please Enter a Password: ";
+            cin >> password;
+            cout << "Please Enter your FULL name: ";
+            cin >> name;
+            if(pm.get_username() == "")
+            {
+                clean();
+                cout << "No Project Manager in System!";
+                startup_screen();
+            } 
+            else
+            {
+                Sales_Associate temp(name,username,password);
+                sas.push_back(temp);
+                interface_sa(sas.size()-1);
+            }
+        }
+        else if(input == 5)
+        {
+            //save();
+            exit(0);
+        }
+        else
+        {
+           clean();
+           cout << "NOT AN INPUT!";
+        }
+    }
+}
+
+void POS_System::save()
+{
+
+}
+
+void POS_System::load()
+{
+
+}
+
 //////////////////
 //     MAIN     //
 //////////////////
@@ -649,5 +880,6 @@ void POS_System::interface_pm()
 int main()
 {
     POS_System test;
+    test.startup_screen();
 	return 0;
 }
