@@ -345,7 +345,8 @@ class Project_Manager: public User
     public:
         void add_part(int part_type);
         void create_robot();  
-        void list_robots();     
+        void list_robots(); 
+        Robot get_robot(int index);    
         Project_Manager(){}
         Project_Manager(string username,string password);
 };
@@ -354,6 +355,11 @@ Project_Manager::Project_Manager(string username,string password)
 {
     this->username = username;
     this->password = password;
+}
+
+Robot Project_Manager::get_robot(int index)
+{
+    return robots[index];
 }
 
 void Project_Manager::add_part(int part_type)
@@ -650,8 +656,6 @@ class POS_System
         void interface_sa(int session);
         void startup_screen();
         void login();
-        void save();
-        void load();
         void clean();
 };
 
@@ -739,17 +743,185 @@ void POS_System::interface_pm()
 
 void POS_System::interface_customer(int session)
 {
-
+    string bs;
+    int input;
+    int index;
+    string interface = R"(
+    **********************************
+    *    1) Order a Robot            *
+    *    2) View Purchase History    *
+    *    3) View Outstanding Balance *
+    *    4) Pick the Sales Associate *
+    *       you wish to speak too    *
+    *    5) Make a Payment           *
+    *    6) Log off                  *
+    **********************************
+    Command: )";
+    while(input != 5)
+    {
+        cout << interface;
+        cin >> input;
+        if(input == 1)
+        {
+            clean();
+            pm.list_robots();
+            cout << "Please select a robot to purchase: ";
+            cin >> index;
+            cms[session].purchase_robot(pm.get_robot(index));
+            sas[cms[session].get_currentsa()].place_order(pm.get_robot(index),cms[session].get_name());
+            clean();
+        }
+        else if(input == 2)
+        {
+            clean();
+            cms[session].view_orders();
+            cout << "Type a random character and then click enter to continue!";
+            cin >> bs;
+            clean();
+        }
+        else if(input == 3)
+        {
+            clean();
+            cout << "Your outstanding balance is: $" << cms[session].get_outstanding_balance();
+            cout << "\n\nType a random character and then click enter to continue!";
+            cin >> bs;
+            clean();
+        }
+        else if(input == 4)
+        {
+            clean();
+            cout << "List of Sales Associate:\n\n";
+            for(int i = 0; i < sas.size(); i++)
+            {
+                cout << "Sales Associate [#" << i << "]\n" 
+                     << "Name: " << sas[session].get_name() << "\n";
+            }
+            cout << "Who would you like as your Sales Associate: ";
+            cin >> index;
+            cms[session].change_sa(index);
+            clean();
+        }
+        else if(input == 5)
+        {
+            double payment;
+            clean();
+            cout << "Your outstanding balance is: $" << cms[session].get_outstanding_balance()
+                 << "\nEnter payment amount: $";
+            cin >> payment;
+            cms[session].pay_amount(payment);
+            clean();
+        }
+        else if (input == 6)
+        {
+            clean();
+            startup_screen();
+        }
+        else
+        {
+            clean();
+            cout << "NOT AN INPUT!";
+        }
+    }
 }
 
 void POS_System::interface_sa(int session)
 {
-
+    int input;
+    string bs;
+    string interface = R"(
+    **********************************
+    *    1) View Bill of Sales       *
+    *    2) Lobby for raise //NA     *
+    *    3) Log off                  *
+    **********************************
+    Command: )";
+    while(input != 3)
+    {
+        cout << interface;
+        cin >> input;
+        if(input == 1)
+        {
+            clean();
+            cout << sas[session].bill_of_sales()
+                 << "\nType any character in and then click enter to continue!";
+            cin >> bs;
+        }
+        else if(input == 2)
+        {
+            clean();
+        }
+        else if(input == 3)
+        {
+            clean();
+            startup_screen();
+        }
+        else
+        {
+            clean();
+            cout << "NOT AN INPUT!";
+        }
+    }
 }
 
 void POS_System::login()
 {
-
+    string username;
+    string password;
+    cout << "Username: ";
+    cin >> username;
+    cout << "Password: ";
+    cin >> password;
+    //Check Project Manager Log in
+    if(username == pm.get_username())
+    {
+        if(password == pm.get_password())
+            {
+                clean();
+                interface_pm();
+            }
+            else
+            {
+                clean();
+                cout << "Password is incorrect!\n\n";
+                login();
+            }
+    }
+    //Check Customer login
+    for(int i = 0; i < cms.size(); i++)
+    {
+        if(username == cms[i].get_username())
+        {
+            if(password == cms[i].get_password())
+            {
+                clean();
+                interface_customer(i);
+            }
+            else
+            {
+                clean();
+                cout << "Password is incorrect!\n\n";
+                login();
+            }
+        }
+    }
+    //Check Sales_Associate
+    for(int i = 0; i < sas.size(); i++)
+    {
+        if(username == sas[i].get_username())
+        {
+            if(password == sas[i].get_password())
+            {
+                clean();
+                interface_sa(i);
+            }
+            else
+            {
+                clean();
+                cout << "Password is incorrect!\n\n";
+                login();
+            }
+        }
+    }
 }
 
 void POS_System::startup_screen()
@@ -775,7 +947,7 @@ void POS_System::startup_screen()
         if(input == 1)
         {   
             clean();
-            //login();
+            login();
         }
         else if(input == 2)
         {
@@ -795,6 +967,7 @@ void POS_System::startup_screen()
             {
                 clean();
                 cout << "Can only have 1 project manager!";
+                clean();
                 startup_screen();
             }
         }
@@ -807,6 +980,7 @@ void POS_System::startup_screen()
             cout << "Please Enter a Password: ";
             cin >> password;
             cout << "Please Enter your FULL name: ";
+            getline(cin,name);
             getline(cin,name);
             if(sas.size() == 0)
             {
@@ -836,7 +1010,8 @@ void POS_System::startup_screen()
             cout << "Please Enter a Password: ";
             cin >> password;
             cout << "Please Enter your FULL name: ";
-            cin >> name;
+            getline(cin,name);
+            getline(cin,name);
             if(pm.get_username() == "")
             {
                 clean();
@@ -863,14 +1038,19 @@ void POS_System::startup_screen()
     }
 }
 
-void POS_System::save()
+void save(POS_System test)
 {
-
+    
 }
 
-void POS_System::load()
+POS_System load()
 {
-
+    POS_System data;
+    string filename = "data.txt";
+    ofstream infile;
+    infile.open(filename.c_str(),ios::in);
+    infile.read()
+    return data;
 }
 
 //////////////////
@@ -880,6 +1060,8 @@ void POS_System::load()
 int main()
 {
     POS_System test;
+    test = load();
     test.startup_screen();
+    save(test);
 	return 0;
 }
