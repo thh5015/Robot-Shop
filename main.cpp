@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <fstream>
 #include <vector>
 #include <ctime>
 using namespace std;
@@ -656,8 +657,28 @@ class POS_System
         void interface_sa(int session);
         void startup_screen();
         void login();
+        void save();
+        void load();
         void clean();
 };
+
+void POS_System::save()
+{
+    //pm.save()
+    for(int i = 0; i < sas.size(); i++)
+    {
+        //sas[i].save();  
+    }
+    for(int i = 0; i < sas.size(); i++)
+    {
+        //cms[i].save();
+    }
+}
+
+void POS_System::load()
+{
+    //
+}
 
 void POS_System::clean()
 {
@@ -757,7 +778,7 @@ void POS_System::interface_customer(int session)
     *    6) Log off                  *
     **********************************
     Command: )";
-    while(input != 5)
+    while(input != 6)
     {
         cout << interface;
         cin >> input;
@@ -774,8 +795,8 @@ void POS_System::interface_customer(int session)
         else if(input == 2)
         {
             clean();
-            cms[session].view_orders();
-            cout << "Type a random character and then click enter to continue!";
+            cout << cms[session].view_orders()
+                 << "Type a random character and then click enter to continue!";
             cin >> bs;
             clean();
         }
@@ -845,6 +866,7 @@ void POS_System::interface_sa(int session)
             cout << sas[session].bill_of_sales()
                  << "\nType any character in and then click enter to continue!";
             cin >> bs;
+            clean();
         }
         else if(input == 2)
         {
@@ -967,7 +989,6 @@ void POS_System::startup_screen()
             {
                 clean();
                 cout << "Can only have 1 project manager!";
-                clean();
                 startup_screen();
             }
         }
@@ -999,6 +1020,7 @@ void POS_System::startup_screen()
                 cin >> sa_index;
                 Customer temp(name,username,password,sa_index);
                 cms.push_back(temp);
+                clean();
                 interface_customer(cms.size()-1);
             }
         }
@@ -1022,6 +1044,7 @@ void POS_System::startup_screen()
             {
                 Sales_Associate temp(name,username,password);
                 sas.push_back(temp);
+                clean();
                 interface_sa(sas.size()-1);
             }
         }
@@ -1038,21 +1061,6 @@ void POS_System::startup_screen()
     }
 }
 
-void save(POS_System test)
-{
-    
-}
-
-POS_System load()
-{
-    POS_System data;
-    string filename = "data.txt";
-    ofstream infile;
-    infile.open(filename.c_str(),ios::in);
-    infile.read()
-    return data;
-}
-
 //////////////////
 //     MAIN     //
 //////////////////
@@ -1060,8 +1068,6 @@ POS_System load()
 int main()
 {
     POS_System test;
-    test = load();
     test.startup_screen();
-    save(test);
 	return 0;
 }
