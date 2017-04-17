@@ -9,8 +9,8 @@ debug: gui
 
 rebuild: clean gui
 
-gui: main.cpp
-	$(CXX) $(CXXFLAGS) $(fltk-config --use-images --cxxflags) -o main main.cpp $(LDFLAGS)
+gui: gui.cpp
+	$(CXX) $(CXXFLAGS) $(fltk-config --use-images --cxxflags) -o gui gui.cpp $(LDFLAGS)
 clean:
-	-rm -f *.o main
+	-rm -f *.o gui
 
