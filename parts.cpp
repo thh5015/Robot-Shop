@@ -96,15 +96,16 @@ void Head::save(ostream& ost)
 void Head::load(istream& ist)
 {
   string temp;
-  getline(ist,name);
-  /*getline(ist,temp);
+  getline(ist,temp);
+  name = temp.c_str();
+  getline(ist,temp);
   part_num = atoi(temp.c_str());
   getline(ist,temp);
   cost = atof(temp.c_str());
   getline(ist,temp);
   weight = atoi(temp.c_str());
   getline(ist,temp);
-  description = temp.c_str();*/
+  description = temp.c_str();
 }
 
 ////////////////////

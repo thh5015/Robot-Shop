@@ -21,6 +21,7 @@ class Robot
         int weight;
         string description;
     public:
+        Robot(){};
         Robot(Head head, Torso torso, Arm left, Arm right, Locomotor locomotor, vector<Battery> &batteries);
         float get_price();
         string get_name();
@@ -52,16 +53,17 @@ Robot::Robot(Head head, Torso torso, Arm left, Arm right, Locomotor locomotor, v
 void Robot::set_info()
 {
 	stringstream temp;
-	temp << "Production cost of robot: $" << cost
-         << "\nPrice of Robot[$]:";
+	temp << "Production cost of robot: $" 
+       << cost
+       << "\nPrice of Robot[$]:";
 	string name{fl_input("Please enter a name for the robot:",0)};
 	string model_num{fl_input("Please enter a model number:",0)};
-	string cost{fl_input((temp.str()).c_str(),0)};
+	string price{fl_input((temp.str()).c_str(),0)};
 	string description{fl_input("Please enter a description for the model:",0)};
 	this->name = name.c_str();
 	this->model_num = atoi(model_num.c_str());
-    this->cost = atof(cost.c_str());
-    this->description = description.c_str();
+  this->price = atof(price.c_str());
+  this->description = description.c_str();
 }
 
 float Robot::get_price()
@@ -121,10 +123,13 @@ void Robot::load(istream& ist)
   description = temp.c_str();
   head.load(ist);
   torso.load(ist);
+  left.load(ist);
   right.load(ist);
   locomotor.load(ist);
   for(int i = 0; i < torso.get_compartments(); i++)
   {
-    batteries[i].load(ist);
+    Battery b;
+    b.load(ist);
+    batteries.push_back(b);
   }
 }

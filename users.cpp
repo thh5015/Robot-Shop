@@ -51,7 +51,7 @@ class Project_Manager: public User
         void create_robot();  
         string list_robots(); 
         Robot get_robot(int index);    
-        Project_Manager(){username = "adam"; password = "1997";}
+        Project_Manager(){}
         Project_Manager(string username,string password);
         void save(ostream& ost);
         void load(istream& ist);
@@ -219,8 +219,8 @@ string Project_Manager::list_robots()
 
 void Project_Manager::save(ostream& ost)
 {
-    ost /*<< username << endl
-        << password << endl*/
+    ost << username << endl
+        << password << endl
         << robots.size() << endl
         << heads.size() << endl
         << torsos.size() << endl
@@ -257,11 +257,10 @@ void Project_Manager::load(istream& ist)
 {
     int size[6];
     string temp;
-    /*getline(ist,temp);
+    getline(ist,temp);
     username = temp.c_str();
     getline(ist,temp);
-    password = atoi(temp.c_str());
-    getline(ist,temp);*/
+    password = temp.c_str();
     for(int i = 0; i < 6; i++)
     {
         getline(ist,temp);
@@ -269,26 +268,38 @@ void Project_Manager::load(istream& ist)
     }
     for(int i = 0; i < size[0]; i++)
     {
-        robots[i].load(ist);
+        Robot r;
+        r.load(ist);
+        robots.push_back(r);
     }
     for(int i = 0; i < size[1]; i++)
     {
-        heads[i].load(ist);
+        Head h;
+        h.load(ist);
+        heads.push_back(h);
     }
     for(int i = 0; i < size[2]; i++)
     {
-        torsos[i].load(ist);
+        Torso t;
+        t.load(ist);
+        torsos.push_back(t);
     }
     for(int i = 0; i < size[3]; i++)
     {
-        arms[i].load(ist);
+        Arm a;
+        a.load(ist);
+        arms.push_back(a);
     }
     for(int i = 0; i < size[4]; i++)
     {
-        batteries[i].load(ist);
+        Battery b;
+        b.load(ist);
+        batteries.push_back(b);
     }
     for(int i = 0; i < size[5]; i++)
-    {
-        locomotors[i].load(ist);
+    { 
+        Locomotor l;
+        l.load(ist);
+        locomotors.push_back(l);
     } 
 }
