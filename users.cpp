@@ -49,7 +49,8 @@ class Project_Manager: public User
     public:
         void add_part(int part_type);
         void create_robot();  
-        string list_robots(); 
+        string list_robots();
+        void set_obsolete(int index); 
         Robot get_robot(int index);    
         Project_Manager(){}
         Project_Manager(string username,string password);
@@ -61,6 +62,11 @@ Project_Manager::Project_Manager(string username,string password)
 {
     this->username = username;
     this->password = password;
+}
+
+void Project_Manager::set_obsolete(int index)
+{
+    robots[index].set_obsolete();
 }
 
 Robot Project_Manager::get_robot(int index)
@@ -122,9 +128,11 @@ void Project_Manager::create_robot()
     stringstream to_string_head;
     for(int i = 0; i < heads.size(); i++)
     {
-        to_string_head << "Head [#" << i << "]\n"
-                       << heads[i].to_string()
-                       << "\n\n";
+       
+            to_string_head << "Head [#" << i << "]\n"
+                            << heads[i].to_string()
+                           << "\n\n";
+        
     }
     to_string_head << "Select a Head [#]:";
     string head{fl_input((to_string_head.str()).c_str(),0)};
@@ -135,9 +143,11 @@ void Project_Manager::create_robot()
     stringstream to_string_torso;
     for(int i = 0; i < torsos.size(); i++)
     {
-        to_string_torso << "Torso [#" << i << "]\n"
-                        << torsos[i].to_string()
-        				<< "\n\n";
+        
+            to_string_torso << "Torso [#" << i << "]\n"
+                            << torsos[i].to_string()
+        				    << "\n\n";
+        
     }
     to_string_torso << "Select a Torso [#]: ";
     string torso{fl_input((to_string_torso.str()).c_str(),0)};
@@ -149,9 +159,11 @@ void Project_Manager::create_robot()
     stringstream to_string_battery;
     for(int i = 0; i < batteries.size(); i++)
     {
-        to_string_battery << "Battery[#" << i << "]\n"
-             			  << batteries[i].to_string()
-             			  << "\n\n";
+        
+            to_string_battery << "Battery[#" << i << "]\n"
+             			      << batteries[i].to_string()
+             			      << "\n\n";
+        
     }
     to_string_battery << "\nPlease Select a Battery for the compartment:";
     for(int i = 0; i < torsos[index_torso].get_compartments(); i++)
@@ -166,9 +178,11 @@ void Project_Manager::create_robot()
     stringstream to_string_rarm;
     for(int i = 0; i < arms.size(); i++)
     {
-        to_string_rarm << "Arm[#" << i << "]\n"
-             		   << arms[i].to_string()
-             		   << "\n\n";
+       
+            to_string_rarm << "Arm[#" << i << "]\n"
+                       << arms[i].to_string()
+                       << "\n\n";
+        
     }
     to_string_rarm << "\nSelect a Right Arm:";
     string rarm{fl_input((to_string_rarm.str()).c_str(),0)};
@@ -179,9 +193,11 @@ void Project_Manager::create_robot()
     stringstream to_string_larm;
     for(int i = 0; i < arms.size(); i++)
     {
+      
         to_string_larm << "Arm[#" << i << "]\n"
         			   << arms[i].to_string()
         	           << "\n\n";
+        
     }
     to_string_larm << "\nSelect a Left Arm: ";
     string larm{fl_input((to_string_larm.str()).c_str(),0)};
@@ -192,9 +208,12 @@ void Project_Manager::create_robot()
     stringstream to_string_locomotor;
     for(int i = 0; i < locomotors.size(); i++)
     {
+        
+        
         to_string_locomotor << "Locomotor[#" << i << "]\n"
              			    << locomotors[i].to_string()
             			    << "\n\n";
+        
     }
     to_string_locomotor << "\nSelect a Locomotor:";
     string locomotor{fl_input((to_string_locomotor.str()).c_str(),0)};
@@ -211,8 +230,12 @@ string Project_Manager::list_robots()
 	to_string << "List of Robots: \n\n";
     for(int i = 0; i < robots.size(); i++)
     {
-        to_string << robots[i].to_string()
+        if(robots[i].get_obsolete() != true)
+        {
+        to_string << "Robot [#" << i << "]\n" 
+                  << robots[i].to_string()
        			  << "\n\n";
+        }
     }
     return to_string.str();
 }
@@ -321,6 +344,9 @@ class Sales_Associate: public User
         string bill_of_sales();
         Sales_Associate(string name,string username, string password);
         Sales_Associate() {};
+        void save(ostream& ost);
+        void load(istream& ist);
+
 };
 
 Sales_Associate::Sales_Associate(string name, string username, string password)
@@ -355,6 +381,81 @@ string Sales_Associate::bill_of_sales()
     return bill_of_sales.str();
 }
 
+void Sales_Associate::save(ostream& ost)
+{
+    ost << username << endl
+        << password << endl
+        << name << endl
+        << sales.size() << endl
+        << names.size() << endl
+        << year.size() << endl
+        << month.size() << endl
+        << day.size() << endl;
+    for(int i = 0; i < sales.size(); i++)
+    {
+        sales[i].save(ost);
+    }
+    for(int i = 0; i < names.size(); i++)
+    {
+        ost << names[i];
+    }
+    for(int i = 0; i < year.size(); i++)
+    {
+        ost << year[i];
+    }
+    for(int i = 0; i < month.size(); i++)
+    {
+        ost << month[i];
+    }
+    for(int i = 0; i < day.size(); i++)
+    {
+        ost << day[i];
+    }
+}
+
+void Sales_Associate::load(istream& ist)
+{
+    int size[5];
+    string temp;
+    getline(ist,temp);
+    username = temp.c_str();
+    getline(ist,temp);
+    password = temp.c_str();
+    getline(ist,temp);
+    name = temp.c_str();
+    for(int i = 0; i < 6; i++)
+    {
+        getline(ist,temp);
+        size[i] = atoi(temp.c_str());
+    }
+    for(int i = 0; i < size[0]; i++)
+    {
+        Robot r;
+        r.load(ist);
+        sales.push_back(r);
+    }
+    for(int i = 0; i < size[1]; i++)
+    {
+        getline(ist,temp);
+        names.push_back(temp.c_str());
+    }
+    for(int i = 0; i < size[2]; i++)
+    {
+        getline(ist,temp);
+        year.push_back(atoi(temp.c_str()));
+    }
+    for(int i = 0; i < size[3]; i++)
+    {
+        getline(ist,temp);
+        month.push_back(atoi(temp.c_str()));
+    }
+    for(int i = 0; i < size[4]; i++)
+    {
+        getline(ist,temp);
+        day.push_back(atoi(temp.c_str()));
+    }
+}
+
 //////////////////
 //  Customer    //
 //////////////////
@@ -370,10 +471,13 @@ class Customer: public User
         void change_sa(int sa_index);
         void pay_amount(int order_index,float amount);
         string view_orders();
+        string bill_invoice();
         int get_currentsa();
         float get_outstanding_balance();
         Customer(string name,string username,string password,int current_sa);
         Customer() {};
+        void save(ostream& ost);
+        void load(istream& ist);
 };
 
 Customer::Customer(string name, string username, string password, int sa_index)
@@ -413,9 +517,38 @@ string Customer::view_orders()
     {
         to_string << "Order #: " << i+1
                   << "\nModel Name: " << orders[i].get_name()
-                  << "\nPrice of Robot: " << orders[i].get_price() << "\n\n";
+                  << "\nPrice of Robot: $" << orders[i].get_price() 
+                  << "\nOutstanding Balance on Robot: $" << orders[i].get_outstanding_balance()
+                  << "\n\n";
     }
     return to_string.str();
+}
+
+string Customer::bill_invoice()
+{
+    stringstream paid;
+    stringstream not_paid;
+    paid << "Paid Off Robots:\n\n";
+    not_paid << "Not Paid Off Robots\n\n";
+    for(int i = 0; i < orders.size(); i++)
+    {
+        if(orders[i].get_paid() == true)
+        {
+            paid << "Order #: " << i+1
+                 << "\nModel Name: " << orders[i].get_name()
+                 << "\nPrice of Robot: $" << orders[i].get_price() << "\n\n";
+        }
+        else
+        {
+            not_paid << "Order #: " << i+1
+                     << "\nModel Name: " << orders[i].get_name()
+                     << "\nPrice of Robot: $" << orders[i].get_price() 
+                     << "\nAmount Still Owed: $" << orders[i].get_outstanding_balance()
+                     << "\n\n";
+        }
+    }
+    paid << not_paid.str() << "Outstanding Balance: $" << outstanding_balance;
+    return paid.str();
 }
 
 float Customer::get_outstanding_balance()
@@ -426,4 +559,42 @@ float Customer::get_outstanding_balance()
 int Customer::get_currentsa()
 {
     return sa_index;
+}
+
+void Customer::save(ostream& ost)
+{
+    ost << username << endl
+        << password << endl
+        << name << endl
+        << outstanding_balance << endl
+        << sa_index << endl
+        << orders.size() << endl;
+        for(int i = 0; i < orders.size(); i++)
+        {
+            orders[i].save(ost);
+        }
+}
+
+void Customer::load(istream& ist)
+{
+    string temp;
+    int size;
+    getline(ist,temp);
+    username = temp.c_str();
+    getline(ist,temp);
+    password = temp.c_str();
+    getline(ist,temp);
+    name = temp.c_str();
+    getline(ist,temp);
+    outstanding_balance = atoi(temp.c_str());
+    getline(ist,temp);
+    sa_index = atoi(temp.c_str());
+    getline(ist,temp);
+    size = atoi(temp.c_str());
+    for(int i = 0; i < size; i++)
+    {
+        Robot r;
+        r.load(ist);
+        orders.push_back(r);
+    }
 }

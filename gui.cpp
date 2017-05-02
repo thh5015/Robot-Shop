@@ -11,10 +11,9 @@ class gui
         int sa_session;                 
         vector<Customer> cms;	
         int cm_session;
-
+        string filename = "data.txt";
 		int x;
 		int y;
-		string filename = "data.txt";
 		Fl_Input* username;
 		Fl_Input* password;
 		Fl_Input* name;
@@ -43,12 +42,24 @@ class gui
 		void real_check_log();
 		static void viewBOS(Fl_Widget* w, void* p);
 		void real_viewBOS();
+		static void viewBill(Fl_Widget* w, void* p);
+		void real_viewBill();
 		static void viewALL(Fl_Widget* w, void* p);
 		void real_viewALL();
 		static void orderRobot(Fl_Widget* w, void* p);
 		void real_orderRobot();
 		static void viewOrder(Fl_Widget* w, void* p);
 		void real_viewOrder();
+		static void payOff(Fl_Widget* w, void* p);
+		void real_payOff();
+		static void Save(Fl_Widget* w, void* p);
+		void real_Save();
+		static void Save_as(Fl_Widget* w, void* p);
+		void real_Save_as();
+		static void Load(Fl_Widget* w, void* p);
+		void real_Load();
+		static void set_obsolete(Fl_Widget* w, void* p);
+		void real_set_obsolete();
 		static void createPM(Fl_Widget* w, void* p);
 		void real_createPM();
 		static void create_PM(Fl_Widget* w, void* p);
@@ -67,15 +78,15 @@ class gui
 		void pm_win();
 		void cm_win();
 		void sas_win();
-		void save();
-		void load();
+		void save(string filename);
+		void load(string filename);
 };
 
 gui::gui(int x, int y)
 {
 	this->x = x;
 	this->y = y;
-	load();
+	load("data.txt");
 	startup();
 }
 
@@ -171,7 +182,7 @@ void gui::return_startup(Fl_Widget* w, void* p)
 
 void gui::real_return_startup()
 {
-	save();
+	save(filename);
 	win->hide();
 	startup();
 }
@@ -183,8 +194,10 @@ void gui::viewBOS(Fl_Widget* w, void* p)
 
 void gui::real_viewBOS()
 {
+	win->hide();
 	string to_string = sas[sa_session].bill_of_sales();
 	fl_message(to_string.c_str());
+	sas_win();
 }
 
 void gui::viewALL(Fl_Widget* w, void* p)
@@ -194,6 +207,7 @@ void gui::viewALL(Fl_Widget* w, void* p)
 
 void gui::real_viewALL()
 {
+	win->hide();
 	stringstream to_string;
 	to_string << "List of All Orders:\n\n";
 	for(int i = 0; i < cms.size(); i++)
@@ -202,6 +216,7 @@ void gui::real_viewALL()
 		          << "\n" << cms[i].view_orders();
 	}
 	fl_message((to_string.str()).c_str());
+	sas_win();
 }
 
 void gui::orderRobot(Fl_Widget* w, void* p)
@@ -211,11 +226,17 @@ void gui::orderRobot(Fl_Widget* w, void* p)
 
 void gui::real_orderRobot()
 {
+	win->hide();
 	stringstream to_string;
 	to_string << pm.list_robots() << "Which Robot Would You Like To Purchase? ";
 	string index_robot{fl_input((to_string.str()).c_str(),0)};
-	cms[cm_session].purchase_robot(pm.get_robot(atoi(index_robot.c_str())));
-	sas[cms[cm_session].get_currentsa()].place_order(pm.get_robot(atoi(index_robot.c_str())),cms[cm_session].get_name());
+	string bulk_order{fl_input("How many of this model would you like?",0)};
+	for(int i = 0; i < atoi(bulk_order.c_str()); i++)
+	{
+		cms[cm_session].purchase_robot(pm.get_robot(atoi(index_robot.c_str())));
+		sas[cms[cm_session].get_currentsa()].place_order(pm.get_robot(atoi(index_robot.c_str())),cms[cm_session].get_name());
+	}
+	cm_win();
 }
 
 void gui::viewOrder(Fl_Widget* w, void* p)
@@ -225,9 +246,87 @@ void gui::viewOrder(Fl_Widget* w, void* p)
 
 void gui::real_viewOrder()
 {
+	win->hide();
 	stringstream to_string;
 	to_string << "List of All Orders:\n\n" << cms[cm_session].view_orders();
 	fl_message((to_string.str()).c_str());
+	cm_win();
+}
+
+void gui::viewBill(Fl_Widget* w, void* p)
+{
+	((gui*)p)->real_viewBill();
+}
+
+void gui::real_viewBill()
+{
+	win->hide();
+	fl_message(cms[cm_session].bill_invoice().c_str());
+	cm_win();
+}
+
+void gui::payOff(Fl_Widget* w, void* p)
+{
+	((gui*)p)->real_payOff();
+}
+
+void gui::real_payOff()
+{
+	win->hide();
+	stringstream to_string;
+	to_string << cms[cm_session].view_orders() << "Which order would you like to pay off?";
+	string input{fl_input(to_string.str().c_str(),0)};
+	string amount{fl_input("How much would you like to pay off?",0)};
+	cms[cm_session].pay_amount(atoi(input.c_str()),atof(amount.c_str()));
+	cm_win();
+}
+
+void gui::set_obsolete(Fl_Widget* w, void* p)
+{
+	((gui*)p)->real_set_obsolete();
+}
+
+void gui::real_set_obsolete()
+{
+	win->hide();
+	stringstream to_string;
+	to_string << pm.list_robots() << "Which model would you like to set as obsolete?";
+	string choice{fl_input(to_string.str().c_str(),0)};
+	pm.set_obsolete(atoi(choice.c_str()));
+	pm_win();
+}
+
+void gui::Save(Fl_Widget* w, void* p)
+{
+	((gui*)p)->real_Save();
+}
+
+void gui::real_Save()
+{
+	save(filename);
+}
+
+void gui::Save_as(Fl_Widget* w, void* p)
+{
+	((gui*)p)->real_Save_as();
+}
+
+void gui::real_Save_as()
+{
+	string filename{fl_input("Please Enter Filename: ",0)};
+	this->filename = filename;
+	save(filename);
+}
+
+void gui::Load(Fl_Widget* w, void* p)
+{
+	((gui*)p)->real_Load();
+}
+
+void gui::real_Load()
+{
+	string filename{fl_input("Please Enter Filename: ",0)};
+	load(filename);
 }
 
 void gui::exit(Fl_Widget* w, void* p)
@@ -425,20 +524,29 @@ void gui::pm_win()
 	win->hide();
 	win = new Fl_Window(x,y,"Project Manager Screen");
 	win->begin();
+	Fl_Menu_Bar* menubar = new Fl_Menu_Bar(0,0,x,25);
+  	Fl_Button* save = new Fl_Button(0,0,100,25,"Save");
+  	Fl_Button* save_as = new Fl_Button(100,0,100,25,"Save As");
+  	Fl_Button* load = new Fl_Button(200,0,100,25,"Load");
+  	save->callback(Save,this);
+  	save_as->callback(Save_as,this);
+  	load->callback(Load,this);
 	Fl_Button* head = new Fl_Button(x/3.5,y/9,125,25,"Add Head");
 	Fl_Button* arm = new Fl_Button(x/3.5,y/5,125,25,"Add Arm");
 	Fl_Button* torso = new Fl_Button(x/3.5,y/3.4,125,25,"Add Torso");
 	Fl_Button* battery = new Fl_Button(x/3.5,y/2.58,125,25,"Add Battery");
 	Fl_Button* locomotor = new Fl_Button(x/3.5,y/2.05,125,25,"Add Locomotor");
 	Fl_Button* create = new Fl_Button(x/3.5,y/1.71,125,25,"Create Robot");
-	Fl_Button* view = new Fl_Button(x/3.5,y/1.47,125,25,"View Robots");
-	Fl_Button* log_off = new Fl_Button(x/3.5,y/1.2,125,25,"Log off");
+	Fl_Button* obsolete = new Fl_Button(x/3.5,y/1.47,125,25,"Set as Obsolete");
+	Fl_Button* view = new Fl_Button(x/3.5,y/1.3,125,25,"View Robots");
+	Fl_Button* log_off = new Fl_Button(x/3.5,y/1.1,125,25,"Log off");
 	head->callback(add_head,this);
 	arm->callback(add_arm,this);
 	torso->callback(add_torso,this);
 	battery->callback(add_battery,this);
 	locomotor->callback(add_locomotor,this);
 	create->callback(create_robot,this);
+	obsolete->callback(set_obsolete,this);
 	view->callback(view_robots,this);
 	log_off->callback(return_startup,this);
 	win->end();
@@ -450,6 +558,13 @@ void gui::sas_win()
 	win->hide();
 	win = new Fl_Window(x,y,"Sales Associate Screen");
 	win->begin();
+	Fl_Menu_Bar* menubar = new Fl_Menu_Bar(0,0,x,25);
+  	Fl_Button* save = new Fl_Button(0,0,100,25,"Save");
+  	Fl_Button* save_as = new Fl_Button(100,0,100,25,"Save As");
+  	Fl_Button* load = new Fl_Button(200,0,100,25,"Load");
+  	save->callback(Save,this);
+  	save_as->callback(Save_as,this);
+  	load->callback(Load,this);
 	Fl_Button* view_bill = new Fl_Button(x/3.5,y/5,150,25,"View Sales Report");
 	Fl_Button* view_all_orders = new Fl_Button(x/3.5,y/3.4,150,25,"View All Orders");
 	Fl_Button* manage_orders = new Fl_Button(x/3.5,y/2.58,150,25,"Manage Orders");
@@ -466,13 +581,22 @@ void gui::cm_win()
 	win->hide();
 	win = new Fl_Window(x,y,"Customer Window");
 	win->begin();
-	Fl_Button* order_robot = new Fl_Button(x/3.5,y/5,150,25,"Order a Robot");
-	Fl_Button* view_orders = new Fl_Button(x/3.5,y/3.4,150,25,"View Orders");
-	Fl_Button* view_bill = new Fl_Button(x/3.5,y/2.58,150,25,"View Bill(Invoice)");
-	Fl_Button* log_off = new Fl_Button(x/3.5,y/1.71,150,25,"Log off");
+	Fl_Menu_Bar* menubar = new Fl_Menu_Bar(0,0,x,25);
+  	Fl_Button* save = new Fl_Button(0,0,100,25,"Save");
+  	Fl_Button* save_as = new Fl_Button(100,0,100,25,"Save As");
+  	Fl_Button* load = new Fl_Button(200,0,100,25,"Load");
+  	save->callback(Save,this);
+  	save_as->callback(Save_as,this);
+  	load->callback(Load,this);
+	Fl_Button* order_robot = new Fl_Button(x/3.5,y/5,175,25,"Order a Robot");
+	Fl_Button* view_orders = new Fl_Button(x/3.5,y/3.4,175,25,"View Orders");
+	Fl_Button* view_bill = new Fl_Button(x/3.5,y/2.58,175,25,"View Bill(Invoice)");
+	Fl_Button* pay_off = new Fl_Button(x/3.5,y/2.05,175,25,"Pay Off Outstanding Bill");
+	Fl_Button* log_off = new Fl_Button(x/3.5,y/1.4,175,25,"Log off");
 	order_robot->callback(orderRobot,this);
 	view_orders->callback(viewOrder,this);
-	//view_bill->callback(viewBill,this);
+	view_bill->callback(viewBill,this);
+	pay_off->callback(payOff,this);
 	log_off->callback(return_startup,this);
 	win->end();
 	win->show();
@@ -480,8 +604,15 @@ void gui::cm_win()
 
 void gui::startup()
 {
-	win->begin();
 	win = new Fl_Window(x,y,"Welcome to Robot Shop!");
+	win->begin();
+	Fl_Menu_Bar* menubar = new Fl_Menu_Bar(0,0,x,25);
+  	Fl_Button* save = new Fl_Button(0,0,100,25,"Save");
+  	Fl_Button* save_as = new Fl_Button(100,0,100,25,"Save As");
+  	Fl_Button* load = new Fl_Button(200,0,100,25,"Load");
+  	save->callback(Save,this);
+  	save_as->callback(Save_as,this);
+  	load->callback(Load,this);
 	username = new Fl_Input(x/3,y/9,175,25,"Username: ");
 	password = new Fl_Input(x/3,y/5,175,25,"Password: ");
 	Fl_Button* submit = new Fl_Button(x/2.1,y/3.4,75,25,"Submit");
@@ -498,19 +629,47 @@ void gui::startup()
 	win->show();
 }
 
-void gui::save()
+void gui::save(string filename)
 {
 	ofstream ost{filename};
 	pm.save(ost);
+	ost << cms.size() << endl
+		<< sas.size() << endl;
+	for(int i = 0; i < cms.size(); i++)
+	{
+		cms[i].save(ost);
+	}
+	for(int i = 0; i < sas.size(); i++)
+	{
+		sas[i].save(ost); 	
+	}
 	ost.close();
 }
 
-void gui::load()
+void gui::load(string filename)
 {
+	string temp;
+	int size1,size2;
 	ifstream ist{filename};
 	ist.clear();
 	ist.seekg(0,ios::beg);
 	pm.load(ist);
+	getline(ist,temp);
+	size1 = atoi(temp.c_str());
+	getline(ist,temp);
+	size2 = atoi(temp.c_str());
+	for(int i = 0; i < size1; i++)
+	{
+		Customer c;
+		c.load(ist);
+		cms.push_back(c);
+	}
+	for(int i = 0; i < size2; i++)
+	{
+		Sales_Associate s;
+		s.load(ist);
+		sas.push_back(s);
+	}
 	ist.close();
 }
 

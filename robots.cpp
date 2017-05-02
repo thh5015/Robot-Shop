@@ -20,15 +20,19 @@ class Robot
         float price;
         float outstanding_balance;
         bool paid = false;
+        bool obsolete = false;
         int weight;
         string description;
     public:
         Robot(){};
         Robot(Head head, Torso torso, Arm left, Arm right, Locomotor locomotor, vector<Battery> &batteries);
+        bool get_paid();
         float get_price();
         string get_name();
         float get_outstanding_balance();
         void set_info();
+        void set_obsolete();
+        bool get_obsolete();
         void pay_amount(float amount);
         void ispaid();
         string to_string();
@@ -55,6 +59,11 @@ Robot::Robot(Head head, Torso torso, Arm left, Arm right, Locomotor locomotor, v
     this->cost = cost;
 }
 
+bool Robot::get_obsolete()
+{
+  return obsolete;
+}
+
 void Robot::set_info()
 {
 	stringstream temp;
@@ -70,6 +79,11 @@ void Robot::set_info()
   this->price = atof(price.c_str());
   this->outstanding_balance = this->price;
   this->description = description.c_str();
+}
+
+void Robot::set_obsolete()
+{
+  obsolete = true;
 }
 
 void Robot::pay_amount(float amount)
@@ -97,6 +111,11 @@ string Robot::get_name()
     return name;
 }
 
+bool Robot::get_paid()
+{
+  return paid;
+}
+
 string Robot::to_string()
 {
     stringstream to_string;
@@ -114,6 +133,9 @@ void Robot::save(ostream& ost)
       << model_num << endl
       << cost << endl
       << price << endl
+      << outstanding_balance << endl
+      << paid << endl
+      << obsolete << endl
       << weight << endl
       << description << endl;
   head.save(ost);
@@ -138,6 +160,26 @@ void Robot::load(istream& ist)
   cost = atof(temp.c_str());
   getline(ist,temp);
   price = atof(temp.c_str());
+  getline(ist,temp);
+  outstanding_balance = atof(temp.c_str());
+  getline(ist,temp);
+  if(temp == "true")
+  {
+    paid = true;
+  }
+  if(temp == "false")
+  {
+    paid = false;
+  }
+  getline(ist,temp);
+  if(temp == "true")
+  {
+    obsolete = true;
+  }
+  if(temp == "false")
+  {
+    obsolete = false;
+  }
   getline(ist,temp);
   weight = atoi(temp.c_str());
   getline(ist,temp);

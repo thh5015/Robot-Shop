@@ -4,6 +4,7 @@
 #include <FL/Fl_Input.H>
 #include <FL/Fl_Button.H>
 #include <FL/fl_ask.H>
+#include <FL/Fl_Menu_Bar.H>
 #include <iostream>
 #include <string>
 #include <sstream>
