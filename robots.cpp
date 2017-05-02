@@ -18,6 +18,8 @@ class Robot
         int model_num;
         float cost;
         float price;
+        float outstanding_balance;
+        bool paid = false;
         int weight;
         string description;
     public:
@@ -25,7 +27,10 @@ class Robot
         Robot(Head head, Torso torso, Arm left, Arm right, Locomotor locomotor, vector<Battery> &batteries);
         float get_price();
         string get_name();
+        float get_outstanding_balance();
         void set_info();
+        void pay_amount(float amount);
+        void ispaid();
         string to_string();
         void save(ostream& ost); 
         void load(istream& ist);
@@ -63,12 +68,28 @@ void Robot::set_info()
 	this->name = name.c_str();
 	this->model_num = atoi(model_num.c_str());
   this->price = atof(price.c_str());
+  this->outstanding_balance = this->price;
   this->description = description.c_str();
+}
+
+void Robot::pay_amount(float amount)
+{
+  outstanding_balance = outstanding_balance - amount;
+}
+
+void Robot::ispaid()
+{
+  paid = true;
 }
 
 float Robot::get_price()
 {
     return price;
+}
+
+float Robot::get_outstanding_balance()
+{
+  return outstanding_balance;
 }
 
 string Robot::get_name()

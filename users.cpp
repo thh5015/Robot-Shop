@@ -303,3 +303,127 @@ void Project_Manager::load(istream& ist)
         locomotors.push_back(l);
     } 
 }
+
+///////////////////////
+//  Sales Associate  //
+///////////////////////
+
+class Sales_Associate: public User
+{
+    private:
+        vector<Robot> sales;
+        vector<string> names;
+        vector<int> year;
+        vector<int> month;
+        vector<int> day;
+    public:
+        void place_order(Robot robot, string name);
+        string bill_of_sales();
+        Sales_Associate(string name,string username, string password);
+        Sales_Associate() {};
+};
+
+Sales_Associate::Sales_Associate(string name, string username, string password)
+{
+    this->name = name;
+    this->username = username;
+    this->password = password;
+}
+
+void Sales_Associate::place_order(Robot robot,string name)
+{
+    time_t t = time(0);
+    struct tm* now = localtime(&t);
+    year.push_back(now->tm_year+1900);
+    month.push_back(now->tm_mon+1);
+    day.push_back(now->tm_mday);
+    names.push_back(name);
+    sales.push_back(robot);
+}
+
+string Sales_Associate::bill_of_sales()
+{
+    stringstream bill_of_sales;
+    bill_of_sales << "Bill of Sales:\n\n";
+    for(int i = 0; i < sales.size(); i++)
+    {
+        bill_of_sales << "Order #: " << i+1
+                      << "\nDate of Sale: " << month[i] << "/" << day[i] << "/" << year[i]
+                      << "\nCustomers Name: " << names[i]
+                      << "\nRobot Ordered: " << sales[i].get_price() << "\n\n";
+    }
+    return bill_of_sales.str();
+}
+
+//////////////////
+//  Customer    //
+//////////////////
+
+class Customer: public User
+{
+    private:
+        vector<Robot> orders;
+        float outstanding_balance;
+        int sa_index;
+    public:
+        void purchase_robot(Robot robot);
+        void change_sa(int sa_index);
+        void pay_amount(int order_index,float amount);
+        string view_orders();
+        int get_currentsa();
+        float get_outstanding_balance();
+        Customer(string name,string username,string password,int current_sa);
+        Customer() {};
+};
+
+Customer::Customer(string name, string username, string password, int sa_index)
+{
+    this->name = name;
+    this->username = username;
+    this->password = password;
+    this->sa_index = sa_index;
+    outstanding_balance = 0;
+}
+
+void Customer::purchase_robot(Robot robot)
+{
+    orders.push_back(robot);
+    outstanding_balance = outstanding_balance + robot.get_price();
+}
+
+void Customer::pay_amount(int order_index,float amount)
+{
+    orders[order_index].pay_amount(amount);
+    if(orders[order_index].get_outstanding_balance() <= 0)
+    {
+        orders[order_index].ispaid();
+    }
+    outstanding_balance = outstanding_balance - amount;
+}
+
+void Customer::change_sa(int sa_index)
+{
+    this->sa_index = sa_index;
+}
+
+string Customer::view_orders()
+{
+    stringstream to_string;
+    for(int i = 0; i < orders.size(); i++)
+    {
+        to_string << "Order #: " << i+1
+                  << "\nModel Name: " << orders[i].get_name()
+                  << "\nPrice of Robot: " << orders[i].get_price() << "\n\n";
+    }
+    return to_string.str();
+}
+
+float Customer::get_outstanding_balance()
+{
+    return outstanding_balance;
+}
+
+int Customer::get_currentsa()
+{
+    return sa_index;
+}
